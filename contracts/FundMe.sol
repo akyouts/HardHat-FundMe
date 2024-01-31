@@ -11,14 +11,14 @@ contract FundMe{
     using PriceConverter for  uint256 ;
 
    
-    uint256 public  minimumUSd =50 * 1e18;  
-    address[] public  funders;
-    mapping(address => uint256) public addressToAmountFunded;
+    uint256 public immutable  i_minimumUSd =50 * 1e18;  
+    address[] public  s_funders;
+    mapping(address => uint256) public s_addressToAmountFunded;
 
-    AggregatorV3Interface public priceFeed;
+    AggregatorV3Interface public s_priceFeed;
     
 
-    address public owner;
+    address public immutable owner;
 
      modifier onlyOwner {
         // require(msg.sender == owner, "Sender is not owner !.");
@@ -30,7 +30,7 @@ contract FundMe{
     
     constructor(address priceFeedAddress){
        owner =msg.sender;
-       priceFeed = AggregatorV3Interface(priceFeedAddress);
+       s_priceFeed = AggregatorV3Interface(priceFeedAddress);
     }
 
     
@@ -46,10 +46,10 @@ contract FundMe{
 
     function fund() public payable  {
         
-           require(msg.value.getCoversionRate(priceFeed) >= minimumUSd, "Didn't send enough .");
+           require(msg.value.getCoversionRate(s_priceFeed) >= i_minimumUSd, "Didn't send enough .");
         // require(getCoversionRate(msg.value) >= minimumUSd, "Diddnt send enough .");
-        funders.push(msg.sender);
-        addressToAmountFunded[msg.sender]=msg.value;
+        s_funders.push(msg.sender);
+        s_addressToAmountFunded[msg.sender]=msg.value;
         //  return (msg.value);
 
     }
@@ -57,27 +57,31 @@ contract FundMe{
      function withDraw() public onlyOwner {
         // require(msg.sender == owner, "Sender is not owner .");
         // For loop .
-        for(uint256 fundersIndex=0; fundersIndex < funders.length; fundersIndex++ ){
-            address funder = funders[fundersIndex];
-            addressToAmountFunded[funder] = 0;
+        for(uint256 fundersIndex=0; fundersIndex < s_funders.length; fundersIndex++ ){
+            address funder = s_funders[fundersIndex];
+            s_addressToAmountFunded[funder] = 0;
 
         }
-
-        // reset the Array.
-        // funders = new address[](0);
-
-        // // ways to transfer eth from contract .
-
-        // //transfer
-        // payable(msg.sender).transfer(address(this).balance);
-        // //send
-        // bool onSuccess = payable(msg.sender).send(address(this).balance);
-        // //call
+        
+        s_funders = new address[](0);
 
         (bool onSuccess,)= payable(msg.sender).call{ value: address(this).balance }("");
         require(onSuccess,"WithDraw is failed .");
 
      }
+
+     function cheapWithDraw()public payable onlyOwner {
+         address[] memory funders = s_funders;
+         //mapping do not happing in memory
+         for(uint256 fundersIndex=0; fundersIndex < funders.length; fundersIndex++ ){
+            address funder = funders[fundersIndex];
+            s_addressToAmountFunded[funder] = 0;
+     }
+
+      s_funders = new address[](0);
+
+      (bool onSuccess,)= payable(msg.sender).call{ value: address(this).balance }("");
+        require(onSuccess,"WithDraw is failed .");
 
 
     
@@ -89,4 +93,5 @@ contract FundMe{
     
 
     // function withdraw(){} 
+     }
 }
