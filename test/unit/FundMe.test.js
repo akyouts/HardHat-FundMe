@@ -1,12 +1,15 @@
 const { assert, expect } = require('chai')
 const { deployments ,ethers, getNamedAccounts } = require('hardhat')
+const { developmentChains } = require('../../helper-hardhat-config')
+
+developmentChains.includes(network.name) &&
 describe("FundMe", async()=>{
 let deployer
 let fundMe 
 let mockV3Aggregator
 let sendValue = ethers.parseEther("1")
    
-
+   
     beforeEach(async ()=>{
        // deploy fundMe using harhat-deploy. 
     //    const accounts = await ethers.getSigner();
@@ -24,7 +27,7 @@ let sendValue = ethers.parseEther("1")
         // We will send the PriceFeed Address 
         
         it("set the aggregator address correctly", async()=>{
-            const response = await fundMe.priceFeed()            
+            const response = await fundMe.getPriceFeed()            
             assert.equal(response,mockV3Aggregator.target)
         })
 
@@ -42,13 +45,13 @@ let sendValue = ethers.parseEther("1")
 
         it("Updated the amount funded data structure", async()=>{
             await fundMe.fund({ value:sendValue })
-            const resposne = await fundMe.addressToAmountFunded(deployer)
+            const resposne = await fundMe.getAddressToAmountFunded(deployer)
             assert.equal(resposne.toString(),sendValue.toString())
         })
 
         it("Add funder to array of funders", async()=>{
             await fundMe.fund({ value:sendValue })
-            const response = await fundMe.funders(0)
+            const response = await fundMe.getfunder(0)
             assert.equal(response,deployer)
         })
 
