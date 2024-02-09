@@ -9,7 +9,7 @@ error FundMe__NotOwner();
 contract FundMe {
     using PriceConverter for uint256;
 
-    uint256 public immutable i_minimumUSd = 50 * 1e18;
+    uint256 public immutable i_minimumUSd = 5 * 1e18;
     address[] private s_funders;
     mapping(address => uint256) private s_addressToAmountFunded;
 
